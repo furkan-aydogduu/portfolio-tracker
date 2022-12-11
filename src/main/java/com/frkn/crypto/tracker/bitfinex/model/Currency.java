@@ -37,4 +37,9 @@ public class Currency {
     public int hashCode() {
         return Objects.hash(label);
     }
+
+    @Override
+    public String toString() {
+        return label;
+    }
 }

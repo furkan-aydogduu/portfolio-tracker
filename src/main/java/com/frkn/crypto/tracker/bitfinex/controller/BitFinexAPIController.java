@@ -1,8 +1,7 @@
 package com.frkn.crypto.tracker.bitfinex.controller;
 
 import com.frkn.crypto.tracker.bitfinex.helper.CurrencyPairConverter;
-import com.frkn.crypto.tracker.bitfinex.model.Pair;
-import com.frkn.crypto.tracker.bitfinex.model.Ticker;
+import com.frkn.crypto.tracker.bitfinex.model.*;
 import com.frkn.crypto.tracker.configuration.RestTemplateSecurer;
 import com.frkn.crypto.tracker.model.PortfolioEntry;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Iterator;
 import java.util.List;
 
 @Component
@@ -56,10 +56,25 @@ public class BitFinexAPIController {
 
     public void calculateCurrencyPricesOfPortfolios(List<PortfolioEntry> currencies){
         String[] symbols = getSymbols();
-        //String[] symbols = new String[]{"etheur", "ioteth", "btcusd", "ethusd"};
+        //String[] symbols = new String[]{"htxust", "htxusd", "oneust", "aptust", "xcad:usd", "treebust", "btcusd", "oneusd", "boousd", "eurust", "aptusd"};
         List<Pair> pairs = currencyPairConverter.convertSymbolsToPairs(symbols);
 
-        currencies.forEach(portfolio -> {
+        Graph currencyGraph = new Graph(pairs);
+
+        /*currencyGraph.getGraphNodes().forEach((currency, graphCurrency) -> {
+            System.out.println("-" + currency);
+            graphCurrency.getConnections().forEach(graphCurrency1 -> {
+                System.out.println("---" + graphCurrency1.getCurrency().getLabel());
+                graphCurrency1.getConnections().forEach(graphCurrency2 -> {
+                    System.out.println("-----" + graphCurrency2.getCurrency().getLabel());
+
+                    graphCurrency2.getConnections().forEach(graphCurrency3 -> {
+                        System.out.println("-------" + graphCurrency3.getCurrency().getLabel());
+                    });
+                });
+            });
+        });*/
+        /*currencies.forEach(portfolio -> {
             Pair pairToConvertTheCurrencyToEuro = currencyPairConverter
                     .findRelatedPairsToConvertTheCurrencyToAnotherCurrency(portfolio.getCryptoCurrencyName(), "eur", pairs);
 
@@ -81,6 +96,68 @@ public class BitFinexAPIController {
                 Double currentPortfolioMarketValue = pairToConvertTheCurrencyToEuro.calculatePrice(portfolio);
                 portfolio.setMarketValueAtCurrentTime(currentPortfolioMarketValue);
             }
+        });*/
+
+        currencies.forEach(portfolio -> {
+            GraphCurrencyPath currencyPath = currencyPairConverter
+                    .findRelatedPairsToConvertTheCurrencyToAnotherCurrency(portfolio.getCryptoCurrencyName(), "eur", currencyGraph);
+
+            if(currencyPath.canCalculatePrice()){
+                Pair pairToConvertTheCurrencyToEuro = new Pair(portfolio.getCryptoCurrencyName(), "eur");
+
+                Iterator<GraphCurrency> pathIterator = currencyPath.getPath().iterator();
+
+                if(pathIterator.hasNext()) {
+                    GraphCurrency currentGraphCurrency = pathIterator.next();
+
+                    GraphCurrency nextGraphCurrency = null;
+                    if(pathIterator.hasNext()) {
+                        nextGraphCurrency = pathIterator.next();
+                    }
+
+                    do {
+                        Pair tmpPair = new Pair(currentGraphCurrency.getCurrency().getLabel(), nextGraphCurrency.getCurrency().getLabel());
+                        Pair tmpCrossedPair = new Pair(nextGraphCurrency.getCurrency().getLabel(), currentGraphCurrency.getCurrency().getLabel());
+
+                        if (pairs.contains(tmpPair)) {
+                            if (!tmpPair.isCurrencyItself()) {
+                                String legacyPairString = tmpPair.toString();
+                                Ticker ticker = getTicker(legacyPairString);
+                                tmpPair.setPairPrice(ticker.getMid());
+                            } else {
+                                tmpPair.setPairPrice(1.0);
+                            }
+                            pairToConvertTheCurrencyToEuro.addPossibleConvertablePair(tmpPair);
+                        } else if (pairs.contains(tmpCrossedPair)) {
+                            if (!tmpCrossedPair.isCurrencyItself()) {
+                                String legacyPairString = tmpCrossedPair.toString();
+                                Ticker ticker = getTicker(legacyPairString);
+                                tmpCrossedPair.setPairPrice(ticker.getMid());
+                            } else {
+                                tmpCrossedPair.setPairPrice(1.0);
+                            }
+                            pairToConvertTheCurrencyToEuro.addPossibleConvertablePair(tmpCrossedPair);
+                        }
+
+                        currentGraphCurrency = nextGraphCurrency;
+                        if(pathIterator.hasNext()) {
+                            nextGraphCurrency = pathIterator.next();
+                        }
+
+                        if(currentGraphCurrency.equals(nextGraphCurrency)){
+                            break;
+                        }
+                    } while(true);
+                }
+
+                Double currentPortfolioMarketValue = pairToConvertTheCurrencyToEuro.calculatePrice(portfolio);
+                portfolio.setMarketValueAtCurrentTime(currentPortfolioMarketValue);
+                currencyPath.getPath().forEach(graphCurrency -> System.out.println("*" + graphCurrency));
+
+                pairToConvertTheCurrencyToEuro.getPossibleConvertablePairs().forEach(pair -> System.out.println(pair + " : " + pair.getPairPrice()));
+            }
+
+            System.out.println("-----------------------");
         });
     }
 

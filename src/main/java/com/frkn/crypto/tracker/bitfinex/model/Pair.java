@@ -124,7 +124,7 @@ public class Pair {
     }
 
     public Boolean containsPair(Pair pair){
-        return this.possibleConvertablePairs
+        return /*this.possibleConvertablePairs
                 .stream()
                 .anyMatch( relatedPair ->
                         (
@@ -153,7 +153,22 @@ public class Pair {
                                             && relatedPair.getDivisorCurrency().equals(pair.getDivisorCurrency())
                                 )
                         )
-                );
+                );*/
+
+                this.possibleConvertablePairs
+                        .stream()
+                        .anyMatch( relatedPair ->
+                                (
+                                        relatedPair.getDividendCurrency().equals(pair.getDividendCurrency())
+                                                && relatedPair.getDivisorCurrency().equals(pair.getDivisorCurrency())
+                                )
+                                ||
+                                (
+                                        relatedPair.getDividendCurrency().equals(pair.getDivisorCurrency())
+                                                && relatedPair.getDivisorCurrency().equals(pair.getDividendCurrency())
+                                )
+
+                        );
     }
 
     public Boolean ifRelatedToEachOther(Pair pair){
@@ -191,9 +206,14 @@ public class Pair {
                     currencies.addAll(combined);
                 }, LinkedHashSet::addAll);
 
-        return combinedResult.size() == 2
-                && combinedResult.contains(this.dividendCurrency)
-                && combinedResult.contains(this.divisorCurrency);
+        return (
+                       combinedResult.size() == 2
+                    && combinedResult.contains(this.dividendCurrency)
+                    && combinedResult.contains(this.divisorCurrency)
+                )
+                ||
+                combinedResult.size() == 0
+                ;
     }
 
     public Double calculatePrice(PortfolioEntry portfolioEntry){
@@ -260,5 +280,13 @@ public class Pair {
     @Override
     public int hashCode() {
         return Objects.hash(dividendCurrency, divisorCurrency);
+    }
+
+    @Override
+    public String toString() {
+        if(getDividendCurrency().getLabel().length() > 3 || getDivisorCurrency().getLabel().length() > 3){
+            return getDividendCurrency().getLabel() + ":" + getDivisorCurrency().getLabel();
+        }
+        return getDividendCurrency().getLabel() + "" + getDivisorCurrency().getLabel();
     }
 }

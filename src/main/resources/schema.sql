@@ -3,7 +3,7 @@ drop table if exists portfolio;
 create sequence portfolio_seq;
 
 create table portfolio (
-    id bigint not null default portfolio_seq.nextval PRIMARY KEY ,
+    id bigint not null default nextval('portfolio_seq') PRIMARY KEY ,
     crypto_currency_name varchar(250) not null,
     amount_purchased decimal(20,5) not null,
     wallet_location varchar(250) not null,
