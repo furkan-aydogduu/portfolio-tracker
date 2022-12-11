@@ -86,6 +86,9 @@ public class CurrencyPairConverter {
 
     }
 
+    /**
+     * @Deprecated see startTraversingFromTheRelatedGraphCurrencyToFindACalculationPath(GraphCurrencyPath path, GraphCurrency relatedGraphCurrency, GraphCurrency previousRelatedGraphCurrency){
+     * */
     private Boolean startTraversingFromTheRelatedGraphCurrencyToFindACalculationPath(Pair pairToBeCalculated, Pair relatedPair,
                                                                                      Pair previousRelatedPair){
         System.out.println("--" + relatedPair);
