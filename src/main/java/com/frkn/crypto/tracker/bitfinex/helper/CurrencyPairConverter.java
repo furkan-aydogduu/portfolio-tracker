@@ -31,7 +31,7 @@ public class CurrencyPairConverter {
             Pair currentPair = pairs.get(currentPairIndex);
             System.out.println(currentPair);
             if(pairToBeCalculated.ifRelatedToEachOther(currentPair)) {
-                foundACalculationPath = startTraversingFromTheRelatedGraphCurrencyToFindACalculationPath(pairToBeCalculated,
+                foundACalculationPath = startTraversingFromTheRelatedPairToFindACalculationPath(pairToBeCalculated,
                         currentPair, currentPair);
             }
             if(foundACalculationPath){
@@ -43,7 +43,7 @@ public class CurrencyPairConverter {
         return foundACalculationPath ? pairToBeCalculated : null;
     }
 
-    public GraphCurrencyPath findRelatedPairsToConvertTheCurrencyToAnotherCurrency(
+    public GraphCurrencyPath findRelatedCurrenciesToConvertTheCurrencyToAnotherCurrency(
             String currency, String targetCurrency, Graph currencyGraph
     ){
         Currency currencyAsCurrency = new Currency(currency);
@@ -89,8 +89,8 @@ public class CurrencyPairConverter {
     /**
      * @Deprecated see startTraversingFromTheRelatedGraphCurrencyToFindACalculationPath(GraphCurrencyPath path, GraphCurrency relatedGraphCurrency, GraphCurrency previousRelatedGraphCurrency){
      * */
-    private Boolean startTraversingFromTheRelatedGraphCurrencyToFindACalculationPath(Pair pairToBeCalculated, Pair relatedPair,
-                                                                                     Pair previousRelatedPair){
+    private Boolean startTraversingFromTheRelatedPairToFindACalculationPath(Pair pairToBeCalculated, Pair relatedPair,
+                                                                            Pair previousRelatedPair){
         System.out.println("--" + relatedPair);
         if(!pairToBeCalculated.containsPair(relatedPair)){
             pairToBeCalculated.addPossibleConvertablePair(relatedPair);
@@ -108,7 +108,7 @@ public class CurrencyPairConverter {
                         && !relatedPair.equals(relatedPairOfRelatedPair)
                         && !pairToBeCalculated.containsPair(relatedPairOfRelatedPair)
                         /*&& pairToBeCalculated.ifRelatedToEachOther(relatedPairOfRelatedPair)*/) {
-                    canCalculate = startTraversingFromTheRelatedGraphCurrencyToFindACalculationPath(pairToBeCalculated,
+                    canCalculate = startTraversingFromTheRelatedPairToFindACalculationPath(pairToBeCalculated,
                             relatedPairOfRelatedPair, relatedPair);
                     if (canCalculate) {
                         break;

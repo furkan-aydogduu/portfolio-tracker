@@ -100,7 +100,7 @@ public class BitFinexAPIController {
 
         currencies.forEach(portfolio -> {
             GraphCurrencyPath currencyPath = currencyPairConverter
-                    .findRelatedPairsToConvertTheCurrencyToAnotherCurrency(portfolio.getCryptoCurrencyName(), "eur", currencyGraph);
+                    .findRelatedCurrenciesToConvertTheCurrencyToAnotherCurrency(portfolio.getCryptoCurrencyName(), "eur", currencyGraph);
 
             if(currencyPath.canCalculatePrice()){
                 Pair pairToConvertTheCurrencyToEuro = new Pair(portfolio.getCryptoCurrencyName(), "eur");
